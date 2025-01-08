@@ -621,16 +621,9 @@ class PlotDataGenerator:
         coefs_df = pd.DataFrame({"name": coefs_names, "coefficient": coefs})
 
         self.logger.debug("Computing decomposition")
-        # Check if 'revenue' exists in the columns
-        if "revenue" in dt_saturated_dfs.dt_modSaturated.columns:
-            # Rename 'revenue' to 'dep_var'
-            dt_saturated_dfs.dt_modSaturated = dt_saturated_dfs.dt_modSaturated.rename(
-                columns={"revenue": "dep_var"}
-            )
-            # print("Column 'revenue' renamed to 'dep_var'.")
-        else:
-            # print("Column 'revenue' does not exist.")
-            pass
+        dt_saturated_dfs.dt_modSaturated = dt_saturated_dfs.dt_modSaturated.rename(
+            columns={self.mmm_data.mmmdata_spec.dep_var: "dep_var"}
+        )
         decompCollect = self._model_decomp(
             inputs={
                 "coefs": coefs_df,

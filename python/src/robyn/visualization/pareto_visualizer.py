@@ -727,7 +727,7 @@ class ParetoVisualizer(BaseVisualizer):
             if self.holiday_data and self.holiday_data.prophet_vars
             else []
         )
-        factor_vars = self.mmm_data.mmmdata_spec.factor_vars if self.mmm_data else []
+        factor_vars = self.mmm_data.mmmdata_spec.factor_vars or [] # returns factor vars if truthy, otherwise assigns [] as fallback
         if not (prophet_vars or factor_vars):
             return None
         df = self.featurized_mmm_data.dt_mod.copy()

@@ -398,7 +398,7 @@ class FeatureEngineering:
         if factor_vars:
             # Create dummy variables but keep original
             dt_factors = dt_mod[factor_vars].copy()
-            dt_ohe = pd.get_dummies(dt_factors, prefix=factor_vars[0], prefix_sep="_")
+            dt_ohe = pd.get_dummies(dt_factors, prefix=factor_vars, prefix_sep="_")
 
             # Remove the reference level (usually the most frequent one)
             reference_level = dt_factors[factor_vars[0]].mode()[0]

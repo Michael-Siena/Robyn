@@ -148,7 +148,7 @@ class ParetoVisualizer(BaseVisualizer):
         y_pos = np.arange(len(waterfall_data))
 
         # Create horizontal bars
-        bars = ax.barh(
+        ax.barh(
             y=y_pos,
             width=waterfall_data["start"] - waterfall_data["end"],
             left=waterfall_data["end"],
@@ -203,7 +203,7 @@ class ParetoVisualizer(BaseVisualizer):
         ]
 
         # Create legend with white background
-        legend = ax.legend(
+        ax.legend(
             handles=legend_elements,
             title="Sign",
             loc="upper left",
@@ -964,6 +964,7 @@ class ParetoVisualizer(BaseVisualizer):
         self.pareto_result.pareto_solutions = cleaned_solution_ids
         figures: Dict[str, plt.Figure] = {}
 
+        print(cleaned_solution_ids)
         for solution_id in cleaned_solution_ids:
             fig1 = self.generate_waterfall(solution_id)
             if fig1:

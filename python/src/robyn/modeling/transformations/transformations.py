@@ -61,6 +61,7 @@ class Transformation:
         x: Union[float, pd.Series], Vmax: float, Km: float, reverse: bool = False
     ) -> Union[float, pd.Series]:
         """Apply Michaelis-Menten transformation."""
+        # Used to fit spend-exposure relationship for paid media variables
         logger.debug("Applying Michaelis-Menten transform (reverse=%s)", reverse)
         if not reverse:
             return Vmax * x / (Km + x)

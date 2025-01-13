@@ -46,9 +46,7 @@ class RidgeModelBuilder:
         self.featurized_mmm_data = featurized_mmm_data
         self.ridge_data_builder = RidgeDataBuilder(mmm_data, featurized_mmm_data)
         self.ridge_metrics_calculator = RidgeMetricsCalculator(
-            mmm_data, 
-            hyperparameters, 
-            self.ridge_data_builder
+            mmm_data, hyperparameters, self.ridge_data_builder
         )
         self.ridge_model_evaluator = RidgeModelEvaluator(
             self.mmm_data,
@@ -343,11 +341,7 @@ class RidgeModelBuilder:
         self.logger.debug(f"lambda_max: {lambda_max}")
 
         # Scale inputs for model
-        model = Ridge(
-            alpha=lambda_ / len(x_norm), 
-            fit_intercept=True,
-            #positive=False, # false by default
-        )
+        model = Ridge(alpha=lambda_ / len(x_norm), fit_intercept=True)
         model.fit(x_norm, y_norm)
 
         # Calculate metrics using R-style calculations

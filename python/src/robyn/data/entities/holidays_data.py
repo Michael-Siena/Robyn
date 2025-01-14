@@ -26,10 +26,14 @@ class HolidaysData:
         Returns:
             None
         """
-        self.dt_holidays: pd.DataFrame = dt_holidays
-        self.prophet_vars: List[ProphetVariableType] = prophet_vars
-        self.prophet_signs: List[ProphetSigns] = prophet_signs
-        self.prophet_country: str = prophet_country
+        self.dt_holidays     = dt_holidays
+        self.prophet_vars    = prophet_vars
+        self.prophet_signs   = prophet_signs
+        self.prophet_country = (
+            prophet_country[0]
+            if isinstance(prophet_country, list) # FIX: check whether prophet_country is list
+            else prophet_country
+        )
 
     def __str__(self) -> str:
         """

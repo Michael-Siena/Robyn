@@ -52,3 +52,4 @@ python/src/tutorials/data/*
 python/src/robyn/_deprecate/*
 python/src/robyn/tutorials/output/*
 python/src/robyn/debug/*
+python/tests/component_tutorials/tutorial6_allocator.ipynb

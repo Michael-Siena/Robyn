@@ -57,7 +57,7 @@ class FeatureEngineering:
             dt_transform = self._prophet_decomposition(dt_transform)
             if not quiet:
                 self.logger.info("Prophet decomposition complete")
-
+    
         # Include all independent variables
         all_ind_vars = (
             self.holidays_data.prophet_vars
@@ -65,6 +65,7 @@ class FeatureEngineering:
             + self.mmm_data.mmmdata_spec.paid_media_spends
             + self.mmm_data.mmmdata_spec.organic_vars
         )
+
         self.logger.debug(f"Processing {len(all_ind_vars)} independent variables")
 
         dt_mod = dt_transform
@@ -105,17 +106,17 @@ class FeatureEngineering:
     def _prepare_data(self) -> pd.DataFrame:
         self.logger.debug("Starting data preparation")
         dt_transform = self.mmm_data.data.copy()
-        dt_transform["ds"] = pd.to_datetime(
-            dt_transform[self.mmm_data.mmmdata_spec.date_var]
-        ).dt.strftime("%Y-%m-%d")
+        dt_transform["ds"] = dt_transform[self.mmm_data.mmmdata_spec.date_var].apply(pd.to_datetime, format="%Y-%m-%d")
         dt_transform["dep_var"] = dt_transform[self.mmm_data.mmmdata_spec.dep_var]
         self.logger.debug("Data preparation complete")
         return dt_transform
 
     def _create_rolling_window_data(self, dt_transform: pd.DataFrame) -> pd.DataFrame:
         self.logger.debug("Creating rolling window data")
-        window_start = self.mmm_data.mmmdata_spec.window_start
-        window_end = self.mmm_data.mmmdata_spec.window_end
+        #window_start = self.mmm_data.mmmdata_spec.window_start
+        #window_end   = self.mmm_data.mmmdata_spec.window_end
+        window_start = self.mmm_data.mmmdata_spec.window_start.iloc[0].values[0] if isinstance(self.mmm_data.mmmdata_spec.window_start, pd.DataFrame) else self.mmm_data.mmmdata_spec.window_start
+        window_end   = self.mmm_data.mmmdata_spec.window_end.iloc[0].values[0] if isinstance(self.mmm_data.mmmdata_spec.window_end, pd.DataFrame) else self.mmm_data.mmmdata_spec.window_end
 
         try:
             if window_start is None and window_end is None:
@@ -364,9 +365,9 @@ class FeatureEngineering:
 
         # Get prophet parameters
         prophet_vars = self.holidays_data.prophet_vars
-        use_trend = "trend" in prophet_vars
+        use_trend   = "trend" in prophet_vars
         use_holiday = "holiday" in prophet_vars
-        use_season = "season" in prophet_vars or "yearly.seasonality" in prophet_vars
+        use_season  = "season" in prophet_vars or "yearly.seasonality" in prophet_vars
         use_monthly = "monthly" in prophet_vars
         use_weekday = "weekday" in prophet_vars or "weekly.seasonality" in prophet_vars
 
@@ -374,7 +375,7 @@ class FeatureEngineering:
         holidays = self._set_holidays(
             dt_mod,
             self.holidays_data.dt_holidays.copy(),
-            self.mmm_data.mmmdata_spec.interval_type,
+            self.mmm_data.mmmdata_spec.interval_type if not isinstance(self.mmm_data.mmmdata_spec.interval_type, list) else self.mmm_data.mmmdata_spec.interval_type[0],
         )
 
         # Prepare base regressors

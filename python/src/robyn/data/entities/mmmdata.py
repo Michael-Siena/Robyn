@@ -200,18 +200,17 @@ class MMMData:
 
     def calculate_rolling_window_indices(self) -> None:
         # Ensure the date column is in datetime format
-        self.data[self.mmmdata_spec.date_var] = pd.to_datetime(
-            self.data[self.mmmdata_spec.date_var]
-        )
+        self.data[self.mmmdata_spec.date_var] = self.data[self.mmmdata_spec.date_var].apply(pd.to_datetime) # FIX: was incorrectly converting to datetime
+ 
         # Convert window_start and window_end to datetime if they are strings
         window_start = (
             pd.to_datetime(self.mmmdata_spec.window_start)
-            if isinstance(self.mmmdata_spec.window_start, str)
+            if isinstance(self.mmmdata_spec.window_start[0], str) # FIX: check whether first element in list is str
             else self.mmmdata_spec.window_start
         )
         window_end = (
             pd.to_datetime(self.mmmdata_spec.window_end)
-            if isinstance(self.mmmdata_spec.window_end, str)
+            if isinstance(self.mmmdata_spec.window_end[0], str) # FIX: check whether first element in list is str
             else self.mmmdata_spec.window_end
         )
 

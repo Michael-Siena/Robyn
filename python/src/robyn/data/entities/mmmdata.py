@@ -205,12 +205,12 @@ class MMMData:
         # Convert window_start and window_end to datetime if they are strings
         window_start = (
             pd.to_datetime(self.mmmdata_spec.window_start)
-            if isinstance(self.mmmdata_spec.window_start[0], str) # FIX: check whether first element in list is str
+            if isinstance(self.mmmdata_spec.window_start, str) # FIX: check whether first element in list is str
             else self.mmmdata_spec.window_start
         )
         window_end = (
             pd.to_datetime(self.mmmdata_spec.window_end)
-            if isinstance(self.mmmdata_spec.window_end[0], str) # FIX: check whether first element in list is str
+            if isinstance(self.mmmdata_spec.window_end, str) # FIX: check whether first element in list is str
             else self.mmmdata_spec.window_end
         )
 

@@ -7,7 +7,6 @@ import os
 import logging
 
 from robyn.common.common_util import CommonUtils
-from robyn.common.common_util import CommonUtils
 from robyn.modeling.base_model_executor import BaseModelExecutor
 from robyn.modeling.entities.modelrun_trials_config import TrialsConfig
 from robyn.modeling.entities.enums import NevergradAlgorithm, Models

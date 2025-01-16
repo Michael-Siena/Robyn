@@ -22,11 +22,11 @@ class ParetoResult:
     """
 
     pareto_solutions: List[str]
-    pareto_fronts: int
-    result_hyp_param: pd.DataFrame
-    x_decomp_agg: pd.DataFrame
-    result_calibration: Optional[pd.DataFrame]
-    media_vec_collect: pd.DataFrame
-    x_decomp_vec_collect: pd.DataFrame
-    plot_data_collect: Dict[str, pd.DataFrame]
-    df_caov_pct_all: pd.DataFrame
+    pareto_fronts: int                           # json["ModelsCollect"]["pareto_fonts"] - list --> int
+    result_hyp_param: pd.DataFrame               # json["ModelsCollect"]["hyper_values"] - dict --> pd.DataFrame
+    x_decomp_agg: pd.DataFrame                   # json["ExportedModel"]["summary"] -> [{}] --> pd.DataFrame
+    result_calibration: Optional[pd.DataFrame]   # None
+    media_vec_collect: pd.DataFrame              #
+    x_decomp_vec_collect: pd.DataFrame           #
+    plot_data_collect: Dict[str, pd.DataFrame]   #
+    df_caov_pct_all: pd.DataFrame                #

@@ -54,7 +54,7 @@ class RidgeModelEvaluator:
         param_bounds = [
             hyper_collect["hyper_bound_list_updated"][name] for name in param_names
         ]
-
+        
         instrum_dict = {
             name: ng.p.Scalar(lower=bound[0], upper=bound[1])
             for name, bound in zip(param_names, param_bounds)
@@ -74,9 +74,14 @@ class RidgeModelEvaluator:
             bar_format="{l_bar}{bar}",
             ncols=75,
         ) as pbar:
+            # only do one trial/iteration if optimised hyperparameters already provided
+            if dt_hyper_fixed:
+                trial = iterations = 1
+
             for iter_ng in range(iterations):
                 candidate = optimizer.ask()
-                params = candidate.kwargs
+                # NOTE: we ask optimizer for candidate hyperparameters, otherwise we use dt_hyper_fixed from mmm export json
+                params = candidate.kwargs if not dt_hyper_fixed else dt_hyper_fixed
 
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
@@ -109,9 +114,7 @@ class RidgeModelEvaluator:
                         "nrmse_test": float(result["nrmse_test"]),
                         "decomp.rssd": float(result["decomp_rssd"]),
                         "mape": float(result["mape"]),
-                        "lambda": float(
-                            result["lambda"]
-                        ),  # Critical: Using lambda not lambda_
+                        "lambda": float(result["lambda"]),  # Critical: Using lambda not lambda_
                         "lambda_hp": float(result["lambda_hp"]),
                         "lambda_max": float(result["lambda_max"]),
                         "lambda_min_ratio": float(result["lambda_min_ratio"]),
@@ -309,6 +312,7 @@ class RidgeModelEvaluator:
             for col in X.columns
             if col in self.mmm_data.mmmdata_spec.paid_media_spends
         ]
+
         decomp_rssd = self.ridge_metrics_calculator._calculate_rssd(
             model,
             X_train,
@@ -365,6 +369,7 @@ class RidgeModelEvaluator:
         )
         self.logger.debug(f"Sample predictions: {y_train_pred[:5]}")
         self.logger.debug(f"Sample actual values: {y_norm[:5]}")
+
         return {
             "loss": loss,
             "params": params_formatted,

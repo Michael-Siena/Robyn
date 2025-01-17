@@ -47,6 +47,7 @@ class FeatureEngineering:
         self.logger.debug(f"Input data shape: {self.mmm_data.data.shape}")
 
         dt_transform = self._prepare_data()
+        print(dt_transform)
         self.logger.debug(f"Prepared data shape: {dt_transform.shape}")
 
         if any(
@@ -106,8 +107,21 @@ class FeatureEngineering:
     def _prepare_data(self) -> pd.DataFrame:
         self.logger.debug("Starting data preparation")
         dt_transform = self.mmm_data.data.copy()
-        dt_transform["ds"] = dt_transform[self.mmm_data.mmmdata_spec.date_var].apply(pd.to_datetime, format="%Y-%m-%d")
-        dt_transform["dep_var"] = dt_transform[self.mmm_data.mmmdata_spec.dep_var]
+        # create new date column named "ds", move to first column pos, drop original date column (as in R)
+        dt_transform.insert(
+            0, 
+            "ds", 
+            dt_transform[self.mmm_data.mmmdata_spec.date_var].apply(pd.to_datetime, format="%Y-%m-%d")
+        )
+        dt_transform.drop(columns=[self.mmm_data.mmmdata_spec.date_var], inplace=True)
+        # create new dependent variable column named "dep_var", move to second column pos,  drop original dv column (as in R)
+        dt_transform.insert(
+            1, 
+            "dep_var", 
+            dt_transform[self.mmm_data.mmmdata_spec.dep_var]
+        )
+        dt_transform.drop(columns=[self.mmm_data.mmmdata_spec.dep_var], inplace=True)
+
         self.logger.debug("Data preparation complete")
         return dt_transform
 

@@ -47,7 +47,6 @@ class FeatureEngineering:
         self.logger.debug(f"Input data shape: {self.mmm_data.data.shape}")
 
         dt_transform = self._prepare_data()
-        print(dt_transform)
         self.logger.debug(f"Prepared data shape: {dt_transform.shape}")
 
         if any(
@@ -58,12 +57,12 @@ class FeatureEngineering:
             dt_transform = self._prophet_decomposition(dt_transform)
             if not quiet:
                 self.logger.info("Prophet decomposition complete")
-    
+        
         # Include all independent variables
         all_ind_vars = (
             self.holidays_data.prophet_vars
             + self.mmm_data.mmmdata_spec.context_vars
-            + self.mmm_data.mmmdata_spec.paid_media_spends
+            + self.mmm_data.mmmdata_spec.paid_media_spends # TODO shouldn't this be paid_media_vars?
             + self.mmm_data.mmmdata_spec.organic_vars
         )
 
@@ -88,6 +87,8 @@ class FeatureEngineering:
         ]
         self.logger.debug(f"Keeping {len(columns_to_keep)} columns in final dataset")
 
+        print("\n\n\nFINAL DT_TRANSFORM:\n", dt_transform, "\n\n\n")
+        
         dt_mod = dt_transform[columns_to_keep]
         dt_modRollWind = dt_modRollWind[columns_to_keep]
 
@@ -105,6 +106,11 @@ class FeatureEngineering:
         )
 
     def _prepare_data(self) -> pd.DataFrame:
+        """
+        This did not originally match R implementation. 
+        
+        Now returns the same data after my fixes.
+        """
         self.logger.debug("Starting data preparation")
         dt_transform = self.mmm_data.data.copy()
         # create new date column named "ds", move to first column pos, drop original date column (as in R)
@@ -389,7 +395,9 @@ class FeatureEngineering:
         holidays = self._set_holidays(
             dt_mod,
             self.holidays_data.dt_holidays.copy(),
-            self.mmm_data.mmmdata_spec.interval_type if not isinstance(self.mmm_data.mmmdata_spec.interval_type, list) else self.mmm_data.mmmdata_spec.interval_type[0],
+            self.mmm_data.mmmdata_spec.interval_type 
+            if not isinstance(self.mmm_data.mmmdata_spec.interval_type, list) 
+            else self.mmm_data.mmmdata_spec.interval_type[0],
         )
 
         # Prepare base regressors
@@ -409,18 +417,22 @@ class FeatureEngineering:
         # Handle factor variables
         if self.mmm_data.mmmdata_spec.factor_vars is None:
             self.mmm_data.set_default_factor_vars()
-        factor_vars = self.mmm_data.mmmdata_spec.factor_vars
+        factor_vars = self.mmm_data.mmmdata_spec.factor_vars # this is a list of strings
         if factor_vars:
             # Create dummy variables but keep original
             dt_factors = dt_mod[factor_vars].copy()
-            dt_ohe = pd.get_dummies(dt_factors, prefix=factor_vars, prefix_sep="_")
+            dt_ohe = pd.get_dummies(
+                dt_factors, 
+                prefix=factor_vars, 
+                prefix_sep="_"
+            )
 
             # Remove the reference level (usually the most frequent one)
             reference_level = dt_factors[factor_vars[0]].mode()[0]
             reference_col = f"{factor_vars[0]}_{reference_level}"
+
             if reference_col in dt_ohe.columns:
                 dt_ohe = dt_ohe.drop(columns=[reference_col])
-
             # Add dummies to regressors
             dt_regressors = pd.concat([dt_regressors, dt_ohe], axis=1)
 
@@ -463,6 +475,13 @@ class FeatureEngineering:
         if use_holiday:
             dt_mod["holiday"] = forecast["holidays"].iloc[these].values
 
+        # TODO
+        # This seems quite broken. It scales the factor variables before returning dt_mod.
+        # However, factor vars appear to be scaled according to the hardcoded max factor variable value in R based on the example data???
+        # Yet, this hardcoded value was ALSO wrong (possibly from an earlier version of the example data?).
+        #
+        # There has to be a better way to do this...
+        #
         # Handle factor variables in output
         if factor_vars:
             for var in factor_vars:
@@ -476,11 +495,17 @@ class FeatureEngineering:
                 dt_mod[var] = factor_effects - baseline
 
                 # Scale effects to match R's implementation
+                print("\n\n\nMAX:\n", dt_mod[var].max(), "\n\n\n")
                 if dt_mod[var].sum() > 0:
+                    print("\n\n\nCHECK THIS:\n", dt_mod[var])
                     scale_factor = (
-                        dt_mod[var].max() / 1272202.89877032
+                        dt_mod[var].max() / 1272809.045880253 #1272202.89877032 HACK??? scales according to max value in R output, but this value was initially wrong
                     )  # R's maximum value
                     dt_mod[var] = dt_mod[var] / scale_factor
+
+        print(dt_mod[dt_mod["events"] != 0])
+        print(dt_mod)
+        # TODO
 
         return dt_mod
 

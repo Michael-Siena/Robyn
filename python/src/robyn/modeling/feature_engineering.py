@@ -62,7 +62,7 @@ class FeatureEngineering:
         all_ind_vars = (
             self.holidays_data.prophet_vars
             + self.mmm_data.mmmdata_spec.context_vars
-            + self.mmm_data.mmmdata_spec.paid_media_spends # TODO shouldn't this be paid_media_vars?
+            + self.mmm_data.mmmdata_spec.paid_media_spends
             + self.mmm_data.mmmdata_spec.organic_vars
         )
 
@@ -476,17 +476,16 @@ class FeatureEngineering:
             dt_mod["holiday"] = forecast["holidays"].iloc[these].values
 
         # TODO
-        # This seems quite broken. It scales the factor variables before returning dt_mod.
-        # However, factor vars appear to be scaled according to the hardcoded max factor variable value in R based on the example data???
-        # Yet, this hardcoded value was ALSO wrong (possibly from an earlier version of the example data?).
-        #
-        # There has to be a better way to do this...
-        #
-        # Handle factor variables in output
+        # Fixed the weird factor scaling thing. R and Python outputs for the events variable are now 99.999865057% matching. 
+        # The remaining difference might be due to different seeds in R vs. Python and/or the stochastic nature of some aspects of Prophet decomposition?
+        # 
+        # Also, this code cannot yet accommodate multiple factor variables...
         if factor_vars:
             for var in factor_vars:
                 factor_cols = [
-                    col for col in forecast.columns if col.startswith(f"{var}_")
+                    col for col in forecast.columns 
+                    if col.startswith(f"{var}_") 
+                    and not col.endswith(("_lower", "_upper")) # FIX: after checking the R/inputs.R line 725, I believe this condition was needed. We can comment out the weird scaling code below.
                 ]
                 factor_effects = forecast[factor_cols].sum(axis=1)
 
@@ -495,16 +494,11 @@ class FeatureEngineering:
                 dt_mod[var] = factor_effects - baseline
 
                 # Scale effects to match R's implementation
-                print("\n\n\nMAX:\n", dt_mod[var].max(), "\n\n\n")
-                if dt_mod[var].sum() > 0:
-                    print("\n\n\nCHECK THIS:\n", dt_mod[var])
-                    scale_factor = (
-                        dt_mod[var].max() / 1272809.045880253 #1272202.89877032 HACK??? scales according to max value in R output, but this value was initially wrong
-                    )  # R's maximum value
-                    dt_mod[var] = dt_mod[var] / scale_factor
-
-        print(dt_mod[dt_mod["events"] != 0])
-        print(dt_mod)
+                # if dt_mod[var].sum() > 0:
+                #     scale_factor = (
+                #         dt_mod[var].max() / 1272809.045880252728239 #1272202.89877032 HACK scales according to max value in R output, but this value was initially wrong
+                #     )  # R's maximum value
+                #     dt_mod[var] = dt_mod[var] / scale_factor
         # TODO
 
         return dt_mod
